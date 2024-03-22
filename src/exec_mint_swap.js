@@ -12,9 +12,7 @@ const {
 
  
 
-const bs58 = require('bs58')
-const Logger = require("@ptkdev/logger");
-const logger = new Logger();
+const bs58 = require('bs58') 
 const {
     connection,
     makeTxVersion,
@@ -111,8 +109,8 @@ async function execMintNSwap(input) {
       })
   
       console.log(`Transaction sent with signature: ${signature}`)
-      logger.warning("swapped for " + myPublicKey)
-      logger.warning("txids : "+ signature)
+      console.log("swapped for " + myPublicKey)
+      console.log("txids : "+ signature)
 
 
     }catch(e){

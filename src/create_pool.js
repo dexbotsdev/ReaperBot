@@ -14,9 +14,7 @@ const {
 const {
     buildAndSendTx,
     getWalletTokenAccount,
-} = require('./util.js')
-const Logger = require("@ptkdev/logger");
-const logger = new Logger();
+} = require('./util.js') 
 async function createPool(params) {
     const RAYDIUM_PROGRAM_ID = process.env.NETWORK == 'mainnet' ? MAINNET_PROGRAM_ID : DEVNET_PROGRAM_ID
 
@@ -54,9 +52,9 @@ async function createPool(params) {
     const { innerTransactions } = initPoolInstructionResponse
 
     const txids = await buildAndSendTx(innerTransactions, { skipPreflight: true })
-    logger.warning("Pool Created")
-    logger.warning("Pool Create Tranasactions :", txids)
-    logger.warning("Pool Address :", poolId)
+    console.log("Pool Created")
+    console.log("Pool Create Tranasactions :", txids)
+    console.log("Pool Address :", poolId)
 
     return poolId
 }

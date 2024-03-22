@@ -21,9 +21,7 @@ const { uploadImage } = require("./util.js")
 
 const { Metaplex, toMetaplexFile, keypairIdentity } = require("@metaplex-foundation/js");
 const { createUmi } = require("@metaplex-foundation/umi-bundle-defaults");
-const { Umi, createSignerFromKeypair } = require("@metaplex-foundation/umi");
-const Logger = require("@ptkdev/logger");
-const logger = new Logger();
+const { Umi, createSignerFromKeypair } = require("@metaplex-foundation/umi"); 
 const {
     connection,
     myKeyPair
@@ -123,14 +121,14 @@ async function createToken(tokenInfo) {
     createNewTokenTransaction.feePayer = myKeyPair.publicKey
 
     let blockhash = (await connection.getLatestBlockhash('finalized')).blockhash;
-    logger.warning("blockhash", blockhash)
+    console.log("blockhash", blockhash)
     createNewTokenTransaction.recentBlockhash = blockhash;
 
     const signature = await sendAndConfirmTransaction(connection, createNewTokenTransaction, [myKeyPair, mintKeypair]);
 
-    // logger.warning('Token mint transaction sent. Signature:', signature);
-    logger.warning('Token Created : ', tokenInfo);
-    logger.warning('Token Mint Address :', mintKeypair.publicKey);
+    // console.log('Token mint transaction sent. Signature:', signature);
+    console.log('Token Created : ', tokenInfo);
+    console.log('Token Mint Address :', mintKeypair.publicKey);
 
     return mintKeypair.publicKey
 }
