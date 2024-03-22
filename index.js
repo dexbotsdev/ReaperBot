@@ -34,20 +34,18 @@ const logger = new Logger();
 
 require('dotenv').config({ path: `.env.${process.env.NETWORK}` })
 console.clear()
-say('SolPuller!', {
-    font: 'tiny',
+say('ReaperBot!', {
+    font: 'slick',
     align: 'center', 
     letterSpacing: 1,
     lineHeight: 1,
     space: true,
     maxLength: '0',
-    gradient:  ['green','red'],
-    independentGradient: false,
-  });
+   });
 
-logger.warning("...Enter TOKEN METADATA...")
-const symbol = prompt('... Enter Token Symbol (default: "SLP"): ') || 'SLP';
-const tokenName = prompt('... Enter Token Name (default: "SolPULLER"): ') || 'SolPULLER';
+console.log("...Enter TOKEN METADATA...")
+const symbol = prompt('... Enter Token Symbol (default: "RPB"): ') || 'RPB';
+const tokenName = prompt('... Enter Token Name (default: "ReaperBot"): ') || 'ReaperBot';
 
 const amount = Number(prompt('... Enter Token Total Supply(default: 10000000): ')) || 10000000;
 const decimals = Number(prompt('... Enter Token Decimals(default: 9): ')) || 9;
@@ -58,7 +56,7 @@ const imagePath = prompt('... Enter Token Image name (default: image.png): ') ||
 const lotSize =   0.1;
 const tickSize =  0.001;
 
-logger.warning("...Enter POOl Configuration Data ...")
+console.log("...Enter POOl Configuration Data ...")
 const addBaseAmountNumber = Number(prompt('... Enter Token Pool Supply(default: 9000000): ')) || 9000000;
 const addQuoteAmountNumber = Number(prompt('... Enter Token Pool SOL amount (default: 0.1): ')) || 0.1;
 const poolLockTime = Number(prompt('... Enter Token Pool Launch Time Delay (default: 0):(in Seconds) ')) || 0;
@@ -66,7 +64,7 @@ const poolLockTime = Number(prompt('... Enter Token Pool Launch Time Delay (defa
 main()
 
 async function main() {
-    logger.warning("Creating Token...")
+    console.log("Creating Token...")
     const tokenInfo= {
         amount: amount,
         decimals: decimals,
@@ -81,7 +79,7 @@ async function main() {
     const baseToken = new Token(TOKEN_PROGRAM_ID, new PublicKey(mintAddress), tokenInfo.decimals, tokenInfo.symbol, tokenInfo.tokenName)
     const quoteToken = DEFAULT_TOKEN.WSOL
 
-    logger.warning("Creating Market...")
+    console.log("Creating Market...")
     const targetMarketId = await createMarket({
         baseToken,
         quoteToken,
@@ -108,12 +106,12 @@ async function main() {
         });
 
         if (!found) {
-            logger.warning("checking new token in wallet...")
+            console.log("checking new token in wallet...")
             await sleepTime(1000); // Wait for 1 seconds before retrying
         }
     }
 
-    logger.warning("Creating Pool...")
+    console.log("Creating Pool...")
     const targetPoolPubkey = await createPool({
         baseToken,
         quoteToken,
@@ -127,7 +125,7 @@ async function main() {
     // const targetPool = '9cAk6wsiehHoPyEwUJ9Vy8fpb5iHz5uCupgAMRKxVfbN' // replace pool id
     const targetPool = targetPoolPubkey.toString()
 
-    logger.warning("Waiting for User Input for Volume Based Swaps...")
+    console.log("Waiting for User Input for Volume Based Swaps...")
 
     const inputAmount = prompt(`... Enter Amount of Tokens to Mint and Swap (Default : ${amount})`) || amount;
     const inputTokenAmount = new TokenAmount(baseToken, inputAmount ,false)
