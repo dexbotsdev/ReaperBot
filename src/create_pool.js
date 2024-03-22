@@ -15,27 +15,13 @@ const {
     buildAndSendTx,
     getWalletTokenAccount,
 } = require('./util.js')
-
+const Logger = require("@ptkdev/logger");
+const logger = new Logger();
 async function createPool(params) {
     const RAYDIUM_PROGRAM_ID = process.env.NETWORK == 'mainnet' ? MAINNET_PROGRAM_ID : DEVNET_PROGRAM_ID
 
     const myPublicKey = myKeyPair.publicKey
-
-    /* do something with start price if needed */
-    // const startPrice = calcMarketStartPrice({ addBaseAmount: params.addBaseAmount, addQuoteAmount: params.addQuoteAmount })
-    // console.log("START PRICE")
-    // console.log(startPrice)
-
-    /* do something with market associated pool keys if needed */
-    // const associatedPoolKeys = getMarketAssociatedPoolKeys({
-    //     baseToken: params.baseToken,
-    //     quoteToken: params.quoteToken,
-    //     targetMarketId: params.targetMarketId,
-    //     programId: RAYDIUM_PROGRAM_ID.AmmV4,
-    //     marketProgramId: RAYDIUM_PROGRAM_ID.OPENBOOK_MARKET,
-    // })
-    // const poolId = associatedPoolKeys.id
-
+ 
     const initPoolInstructionResponse = await Liquidity.makeCreatePoolV4InstructionV2Simple({
         connection: connection,
         programId: RAYDIUM_PROGRAM_ID.AmmV4,
@@ -68,9 +54,9 @@ async function createPool(params) {
     const { innerTransactions } = initPoolInstructionResponse
 
     const txids = await buildAndSendTx(innerTransactions, { skipPreflight: true })
-    console.log("Pool Created")
-    console.log("Pool Create Tranasactions :", txids)
-    console.log("Pool Address :", poolId)
+    logger.warning("Pool Created")
+    logger.warning("Pool Create Tranasactions :", txids)
+    logger.warning("Pool Address :", poolId)
 
     return poolId
 }

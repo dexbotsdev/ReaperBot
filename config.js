@@ -13,7 +13,7 @@ const {
     LOOKUP_TABLE_CACHE,
 } = require('@raydium-io/raydium-sdk')
 
-require('dotenv').config({ path: `.env.${process.env.NETWORK}` })
+require('dotenv').config()
 
 const connection = new Connection(process.env.RPC_URL); // helius
 

@@ -14,7 +14,8 @@ const {
     PublicKey,
     VersionedTransaction,
 } = require('@solana/web3.js')
-
+const Logger = require("@ptkdev/logger");
+const logger = new Logger();
 const {
     myKeyPair,
     connection,
@@ -72,7 +73,7 @@ function getATAAddress(programId, owner, mint) {
 }
 
 async function sleepTime(ms) {
-    // console.log((new Date()).toLocaleString(), 'sleepTime', ms)
+    // logger.warning((new Date()).toLocaleString(), 'sleepTime', ms)
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 

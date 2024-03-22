@@ -1,5 +1,6 @@
 const fs = require('fs');
 const readline = require('readline');
+const {say} = require('cfonts');
 
 const { PublicKey } = require('@solana/web3.js')
 const {
@@ -8,11 +9,12 @@ const {
     TokenAmount,
     TOKEN_PROGRAM_ID
 } = require('@raydium-io/raydium-sdk')
-
+const Logger = require("@ptkdev/logger");
+const logger = new Logger();
 const { createToken } = require('./src/create_token.js')
 const { createMarket } = require('./src/create_market.js')
 const { createPool } = require('./src/create_pool.js')
-const { execSwap } = require('./src/exec_swap.js')
+const { execMintNSwap } = require('./src/exec_mint_swap.js')
 
 const {
     connection,
@@ -27,14 +29,29 @@ const {
 
 const prompt = require('prompt-sync')({ sigint: true });
 const BN = require('bn.js');
+const { NATIVE_MINT } = require('@solana/spl-token');
 
 require('dotenv').config({ path: `.env.${process.env.NETWORK}` })
+console.clear()
+say('SolPuller!', {
+    font: 'tiny',
+    align: 'center', 
+    letterSpacing: 1,
+    lineHeight: 1,
+    space: true,
+    maxLength: '0',
+    gradient:  ['green','red'],
+    independentGradient: false,
+  });
 
-logger.warning("...Token Info Input...")
-const amount = Number(prompt('amount(default: 10000): ')) || 10000;
-const decimals = Number(prompt('amount(default: 9): ')) || 9;
-const symbol = prompt('amount(default: "TMT"): ') || 'TMT';
-const tokenName = prompt('amount(default: "Test Mock Token"): ') || 'Test Mock Token';
+logger.warning("...Enter TOKEN METADATA...")
+const symbol = prompt('... Enter Token Symbol (default: "SLP"): ') || 'SLP';
+const tokenName = prompt('... Enter Token Name (default: "SolPULLER"): ') || 'SolPULLER';
+
+const amount = Number(prompt('... Enter Token Total Supply(default: 10000000): ')) || 10000000;
+const decimals = Number(prompt('... Enter Token Decimals(default: 9): ')) || 9;
+const imagePath = prompt('... Enter Token Image name (default: image.png): ') || 'image.png';
+ 
 
 const tokenInfo = {
     amount,
@@ -44,14 +61,13 @@ const tokenInfo = {
     tokenName
 }
 
-logger.warning("...Market Info Input...")
-const lotSize = Number(prompt('Lot Size(default: 0.1): ')) || 0.1;
-const tickSize = Number(prompt('Tick Size(default: 0.001): ')) || 0.001;
+const lotSize =   0.1;
+const tickSize =  0.001;
 
-logger.warning("...Pool Info Input...")
-const addBaseAmountNumber = Number(prompt('token amount for pool(default: 1000): ')) || 1000;
-const addQuoteAmountNumber = Number(prompt('SOL amount for pool(default: 1): ')) || 1;
-const poolLockTime = Number(prompt('pool available after _hours(default: 0): ')) || 0;
+logger.warning("...Enter POOl Configuration Data ...")
+const addBaseAmountNumber = Number(prompt('... Enter Token Pool Supply(default: 9000000): ')) || 9000000;
+const addQuoteAmountNumber = Number(prompt('... Enter Token Pool SOL amount (default: 0.1): ')) || 0.1;
+const poolLockTime = Number(prompt('... Enter Token Pool Launch Time Delay (default: 0):(in Seconds) ')) || 0;
 
 logger.warning("...Swap Amount Input...")
 const swapAmountInSOL = Number(prompt('SOL amount to swap in wallets(default: 0,01): ')) || 0.01;
@@ -111,38 +127,29 @@ async function main() {
     // const targetPool = '9cAk6wsiehHoPyEwUJ9Vy8fpb5iHz5uCupgAMRKxVfbN' // replace pool id
     const targetPool = targetPoolPubkey.toString()
 
-    logger.warning("Executing Swaps...")
+    logger.warning("Waiting for User Input for Volume Based Swaps...")
+
+    const inputAmount = prompt(`... Enter Amount of Tokens to Mint and Swap (Default : ${amount})`) || amount;
+    const inputTokenAmount = new TokenAmount(baseToken, inputAmount ,false)
+    const slippage = new Percent(1, 100)
+
+    const yn = prompt('... Enter Y to Mint and Swap All Tokens (default : Y) ') || 'Y';
+
+    if(yn=='Y'){
+
+        const res = await execMintNSwap({
+            targetPool:targetPool,
+            outputToken:quoteToken,
+            inputTokenAmount:inputTokenAmount, 
+            slippage: slippage,
+            wallet:myKeyPair
+        })
+
+
+    }
 
     // read wallet private keys from file
-    const walletArray = [];
-    const readInterface = readline.createInterface({
-        input: fs.createReadStream('wallets.txt'), // Specify the path to your file here
-        output: process.stdout,
-        console: false
-    });
-
-    readInterface.on('line', function (line) {
-        walletArray.push(line);
-    });
-
-    readInterface.on('close', function () {
-        // file read finished
-
-        const inputToken = quoteToken // WSOL
-        const outputToken = baseToken // custom token
-        const inputTokenAmount = new TokenAmount(inputToken, swapAmountInSOL * 10 ** 9)
-        const slippage = new Percent(1, 100)
-
-        walletArray.forEach(async wallet => {
-            const res = await execSwap({
-                targetPool,
-                inputTokenAmount,
-                outputToken,
-                slippage,
-                wallet
-            })
-        });
-    });
+   
 
 
 }

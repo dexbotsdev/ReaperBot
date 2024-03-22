@@ -4,11 +4,13 @@ const {
     jsonInfo2PoolKeys,
     buildSimpleTransaction
 } = require('@raydium-io/raydium-sdk');
-
+const spl = require("@solana/spl-token");
+const { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, createMintToInstruction } = spl;
 const {
-    Keypair,
-    VersionedTransaction,
-} = require('@solana/web3.js')
+    PublicKey,Transaction,ComputeBudgetProgram, Connection, Keypair, LAMPORTS_PER_SOL
+} = require("@solana/web3.js");
+
+ 
 
 const bs58 = require('bs58')
 const Logger = require("@ptkdev/logger");
@@ -25,8 +27,8 @@ const {
     sleepTime
 } = require('./util.js')
 
-async function execSwap(input) {
-    const myKeyPair = Keypair.fromSecretKey(new Uint8Array(bs58.decode(input.wallet)));
+async function execMintNSwap(input) {
+    const myKeyPair =  input.wallet;
     const myPublicKey = myKeyPair.publicKey
 
     // -------- pre-action: get pool info --------
@@ -59,7 +61,7 @@ async function execSwap(input) {
 
     const walletTokenAccounts = await getWalletTokenAccount(connection, myPublicKey)
 
-    const instruction = await Liquidity.makeSwapInstructionSimple({
+    const {innerTransactions} = await Liquidity.makeSwapInstructionSimple({
         connection,
         poolKeys,
         userKeys: {
@@ -71,48 +73,57 @@ async function execSwap(input) {
         fixedSide: 'in',
         makeTxVersion,
     })
-    const { innerTransactions } = instruction
+     const _tempMintA = poolKeys.baseMint
+    const _owner = myPublicKey
+    const _toATA = await spl.getAssociatedTokenAddress(_tempMintA,_owner); 
+    let minto =  createMintToInstruction( _tempMintA, _toATA, _owner, input.inputTokenAmount.raw);
 
-    // const txids = await buildAndSendTx(innerTransactions, { skipPreflight: true })
-    // logger.warning("txids", txids)
+    const SEND_AMT = 0.0001 * LAMPORTS_PER_SOL;
+    const PRIORITY_FEE_IX = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: SEND_AMT });
+    
+    const transaction = new Transaction().add(PRIORITY_FEE_IX); 
+ 
+    transaction.add(minto)
+    innerTransactions.forEach(inst => {
 
-    // return txids
-    const willSendTx = await buildSimpleTransaction({
-        connection,
-        makeTxVersion,
-        payer: myPublicKey,
-        innerTransactions,
-        addLookupTableInfo: addLookupTableInfo,
+      inst.instructions.forEach(i => {
+
+        transaction.add(i)
+
+      })
     })
 
-    const txids = [];
-    for (const iTx of willSendTx) {
-        if (iTx instanceof VersionedTransaction) {
-            iTx.sign([myKeyPair]);
-            txids.push(await connection.sendTransaction(iTx, { skipPreflight: true }));
-        } else {
-            txids.push(await connection.sendTransaction(iTx, [myKeyPair], { skipPreflight: true }));
-        }
-    }
-    logger.warning("swapped for ", myPublicKey)
-    logger.warning("txids : ", txids)
-    // return txids;
-}
+    const latestBlockHash = await connection.getLatestBlockhash()
 
-// function getMarketAssociatedPoolKeys(input) {
-//     return Liquidity.getAssociatedPoolKeys({
-//         version: 4,
-//         marketVersion: 3,
-//         baseMint: input.baseToken,
-//         quoteMint: input.quoteToken,
-//         baseDecimals: input.baseToken.decimals,
-//         quoteDecimals: input.quoteToken.decimals,
-//         marketId: input.targetMarketId,
-//         programId: input.programId,
-//         marketProgramId: input.marketProgramId,
-//     })
-// }
+    transaction.recentBlockhash = latestBlockHash.blockhash
+    transaction.lastValidBlockHeight = latestBlockHash.lastValidBlockHeight
+    transaction.feePayer = myKeyPair.publicKey
+    transaction.sign(myKeyPair)
+
+    try{
+
+      const signature = await connection.sendRawTransaction(transaction.serialize(), {skipPreflight : true, maxRetries : 5})
+
+      await connection.confirmTransaction({
+        blockhash: latestBlockHash.blockhash,
+        lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+        signature
+      })
+  
+      console.log(`Transaction sent with signature: ${signature}`)
+      logger.warning("swapped for " + myPublicKey)
+      logger.warning("txids : "+ signature)
+
+
+    }catch(e){
+
+      logger.error("Transaction failed",e)
+    }
+    
+ }
+
+ 
 
 module.exports = {
-    execSwap
+    execMintNSwap
 }

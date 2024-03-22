@@ -1,26 +1,26 @@
 const {
-    MarketV2,
+    MarketV2OPT,
     MAINNET_PROGRAM_ID,
     DEVNET_PROGRAM_ID
-} = require('@raydium-io/raydium-sdk')
+} = require('raydium-sdk-opt')
 
 const {
     connection,
     makeTxVersion,
 } = require('../config.js')
 const { buildAndSendTx } = require('./util')
-
+const Logger = require("@ptkdev/logger");
+const logger = new Logger();
 async function createMarket(input) {
     const RAYDIUM_PROGRAM_ID = process.env.NETWORK == 'mainnet' ? MAINNET_PROGRAM_ID : DEVNET_PROGRAM_ID
 
-    // -------- step 1: make instructions --------
-    const createMarketInstruments = await MarketV2.makeCreateMarketInstructionSimple({
+     const createMarketInstruments = await MarketV2OPT.makeCreateMarketInstructionSimple({
         connection,
         wallet: input.wallet.publicKey,
         baseInfo: input.baseToken,
         quoteInfo: input.quoteToken,
-        lotSize: input.lotSize, // default 1
-        tickSize: input.tickSize, // default 0.01
+        lotSize: input.lotSize,  
+        tickSize: input.tickSize,  
         dexProgramId: RAYDIUM_PROGRAM_ID.OPENBOOK_MARKET,
         makeTxVersion,
     })
@@ -28,26 +28,14 @@ async function createMarket(input) {
     marketId = createMarketInstruments.address.marketId
 
     txids = await buildAndSendTx(createMarketInstruments.innerTransactions, { skipPreflight: true })
-    console.log('Market Created')
-    console.log('Create Market Transactions :', txids)
-    console.log('Market Address :', marketId)
+    logger.warning('Market Created')
+    logger.warning('Create Market Transactions :', txids)
+    logger.warning('Market Address :', marketId)
 
     return marketId
 }
 
-async function howToUse() {
-    // const baseToken = DEFAULT_TOKEN.LITS // RAY
-    // const quoteToken = DEFAULT_TOKEN.WSOL // USDC
-
-    // createMarket({
-    //     baseToken,
-    //     quoteToken,
-    //     wallet: wallet,
-    // }).then(({ txids }) => {
-    //     /** continue with txids */
-    //     console.log('txids', txids)
-    // })
-}
+ 
 
 module.exports = {
     createMarket

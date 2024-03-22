@@ -15,7 +15,8 @@ const {
     createMintToInstruction,
 } = require('@solana/spl-token')
 const { createCreateMetadataAccountV3Instruction, PROGRAM_ID } = require('@metaplex-foundation/mpl-token-metadata')
-
+const Logger = require("@ptkdev/logger");
+const logger = new Logger();
 const {
     connection,
     myKeyPair
@@ -90,14 +91,14 @@ async function createToken(tokenInfo) {
     createNewTokenTransaction.feePayer = myKeyPair.publicKey
 
     let blockhash = (await connection.getLatestBlockhash('finalized')).blockhash;
-    console.log("blockhash", blockhash)
+    logger.warning("blockhash", blockhash)
     createNewTokenTransaction.recentBlockhash = blockhash;
 
     const signature = await sendAndConfirmTransaction(connection, createNewTokenTransaction, [myKeyPair, mintKeypair]);
 
-    // console.log('Token mint transaction sent. Signature:', signature);
-    console.log('Token Created : ', tokenInfo);
-    console.log('Token Mint Address :', mintKeypair.publicKey);
+    // logger.warning('Token mint transaction sent. Signature:', signature);
+    logger.warning('Token Created : ', tokenInfo);
+    logger.warning('Token Mint Address :', mintKeypair.publicKey);
 
     return mintKeypair.publicKey
 }
