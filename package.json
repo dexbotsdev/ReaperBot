@@ -4,15 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "NETWORK=devnet node main.js",
-    "main": "NETWORK=mainnet node main.js",
+    "dev": "NETWORK=devnet node index.js",
+    "main": "NETWORK=mainnet node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@metaplex-foundation/js": "^0.20.1",
     "@metaplex-foundation/mpl-token-metadata": "^2.5.2",
+    "@metaplex-foundation/umi": "^0.9.1",
+    "@metaplex-foundation/umi-bundle-defaults": "^0.9.1",
+    "@metaplex-foundation/umi-uploader-nft-storage": "^0.9.1",
     "@openbook-dex/openbook": "^0.0.9",
     "@ptkdev/logger": "^1.8.0",
     "@raydium-io/raydium-sdk": "^1.3.1-beta.47",

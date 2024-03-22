@@ -9,8 +9,7 @@ const {
     TokenAmount,
     TOKEN_PROGRAM_ID
 } = require('@raydium-io/raydium-sdk')
-const Logger = require("@ptkdev/logger");
-const logger = new Logger();
+
 const { createToken } = require('./src/create_token.js')
 const { createMarket } = require('./src/create_market.js')
 const { createPool } = require('./src/create_pool.js')
@@ -30,6 +29,8 @@ const {
 const prompt = require('prompt-sync')({ sigint: true });
 const BN = require('bn.js');
 const { NATIVE_MINT } = require('@solana/spl-token');
+const Logger = require("@ptkdev/logger");
+const logger = new Logger();
 
 require('dotenv').config({ path: `.env.${process.env.NETWORK}` })
 console.clear()
@@ -52,14 +53,7 @@ const amount = Number(prompt('... Enter Token Total Supply(default: 10000000): '
 const decimals = Number(prompt('... Enter Token Decimals(default: 9): ')) || 9;
 const imagePath = prompt('... Enter Token Image name (default: image.png): ') || 'image.png';
  
-
-const tokenInfo = {
-    amount,
-    decimals,
-    metadata: "",
-    symbol,
-    tokenName
-}
+ 
 
 const lotSize =   0.1;
 const tickSize =  0.001;
@@ -68,14 +62,20 @@ logger.warning("...Enter POOl Configuration Data ...")
 const addBaseAmountNumber = Number(prompt('... Enter Token Pool Supply(default: 9000000): ')) || 9000000;
 const addQuoteAmountNumber = Number(prompt('... Enter Token Pool SOL amount (default: 0.1): ')) || 0.1;
 const poolLockTime = Number(prompt('... Enter Token Pool Launch Time Delay (default: 0):(in Seconds) ')) || 0;
-
-logger.warning("...Swap Amount Input...")
-const swapAmountInSOL = Number(prompt('SOL amount to swap in wallets(default: 0,01): ')) || 0.01;
-
+ 
 main()
 
 async function main() {
     logger.warning("Creating Token...")
+    const tokenInfo= {
+        amount: amount,
+        decimals: decimals,
+         symbol: symbol,
+         metadata:{uri:''},
+        tokenName: tokenName,
+        image:imagePath
+    }
+
     const mintAddress = await createToken(tokenInfo)
 
     const baseToken = new Token(TOKEN_PROGRAM_ID, new PublicKey(mintAddress), tokenInfo.decimals, tokenInfo.symbol, tokenInfo.tokenName)

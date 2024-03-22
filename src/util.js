@@ -10,6 +10,8 @@ const {
     SPL_MINT_LAYOUT,
     TOKEN_PROGRAM_ID,
 } = require('@raydium-io/raydium-sdk')
+const fs = require('fs');
+
 const {
     PublicKey,
     VersionedTransaction,
@@ -22,6 +24,7 @@ const {
     makeTxVersion,
     addLookupTableInfo
 } = require('../config')
+const { toMetaplexFile }= require("@metaplex-foundation/js") 
 
 async function sendTx(
     connection,
@@ -123,11 +126,26 @@ async function formatAmmKeysById(id) {
     }
 }
 
+ async function uploadImage(umi , fileName )  {
+    console.log(`Step 1 - Uploading Image`);
+    const imgBuffer =  fs.readFileSync(fileName);
+    const imgMetaplexFile = toMetaplexFile(imgBuffer, fileName);
+
+    console.log(`Step 1 - Uploading Image ${fileName}`);
+    console.log(`Step 1 - Uploading Image ${imgMetaplexFile}`);
+    const [fileUri] = await umi.uploader.upload([imgMetaplexFile])
+
+
+    const imgUri = fileUri;
+    console.log(`   Image URI:`, imgUri); return imgUri;
+}
+
 module.exports = {
     sendTx,
     getWalletTokenAccount,
     buildAndSendTx,
     getATAAddress,
     sleepTime,
+    uploadImage,
     formatAmmKeysById
 };
